@@ -1,45 +1,54 @@
 <template>
-  <div class="contact-form">
-    <h2>{{ isEdit ? '連絡先を編集' : '新しい連絡先' }}</h2>
-    <form @submit.prevent="handleSubmit">
-      <div class="form-group">
-        <label for="name">氏名</label>
-        <input 
-          type="text" 
-          id="name" 
-          v-model="formData.name" 
-          required
-          placeholder="山田 太郎"
-        />
+  <div class="container mt-4">
+    <div class="card">
+      <div class="card-header">
+        <h3>{{ formTitle }}</h3>
       </div>
-      
-      <div class="form-group">
-        <label for="phone">電話番号</label>
-        <input 
-          type="tel" 
-          id="phone" 
-          v-model="formData.phone" 
-          required
-          placeholder="090-1234-5678"
-        />
+      <div class="card-body">
+        <form @submit.prevent="submitForm">
+          <div class="mb-3">
+            <label for="name" class="form-label">氏名</label>
+            <input
+              id="name"
+              v-model="form.name"
+              type="text"
+              class="form-control"
+              required
+            >
+            <div v-if="errors.name" class="text-danger">{{ errors.name }}</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="phone" class="form-label">電話番号</label>
+            <input
+              id="phone"
+              v-model="form.phone"
+              type="tel"
+              class="form-control"
+              required
+            >
+            <div v-if="errors.phone" class="text-danger">{{ errors.phone }}</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">メールアドレス</label>
+            <input
+              id="email"
+              v-model="form.email"
+              type="email"
+              class="form-control"
+              required
+            >
+            <div v-if="errors.email" class="text-danger">{{ errors.email }}</div>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary" @click="closeForm">キャンセル</button>
+            <button type="submit" class="btn btn-primary">保存</button>
+          </div>
+        </form>
       </div>
-      
-      <div class="form-group">
-        <label for="email">メールアドレス</label>
-        <input 
-          type="email" 
-          id="email" 
-          v-model="formData.email" 
-          required
-          placeholder="example@example.com"
-        />
-      </div>
-      
-      <div class="button-group">
-        <button type="submit" class="btn-primary">{{ isEdit ? '更新' : '追加' }}</button>
-        <button type="button" class="btn-secondary" @click="$emit('cancel')">キャンセル</button>
-      </div>
-    </form>
+    </div>
   </div>
 </template>
 
@@ -47,96 +56,91 @@
 export default {
   name: 'ContactForm',
   props: {
+    mode: {
+      type: String,
+      default: 'add',
+      validator: value => ['add', 'edit'].includes(value)
+    },
     contact: {
       type: Object,
-      default: () => ({
-        id: null,
+      default: null
+    }
+  },
+  data() {
+    return {
+      form: {
         name: '',
         phone: '',
         email: ''
-      })
-    }
-  },
-  emits: ['submit', 'cancel'],
-  data() {
-    return {
-      formData: {
-        id: this.contact.id,
-        name: this.contact.name,
-        phone: this.contact.phone,
-        email: this.contact.email
+      },
+      errors: {
+        name: '',
+        phone: '',
+        email: ''
       }
     }
   },
   computed: {
-    isEdit() {
-      return !!this.contact.id;
+    formTitle() {
+      return this.mode === 'add' ? '連絡先登録' : '連絡先編集'
     }
   },
   methods: {
-    handleSubmit() {
-      this.$emit('submit', { ...this.formData });
+    closeForm() {
+      this.$emit('form-closed')
+    },
+    validate() {
+      let isValid = true
+      this.errors = {
+        name: '',
+        phone: '',
+        email: ''
+      }
+
+      if (!this.form.name) {
+        this.errors.name = '氏名を入力してください'
+        isValid = false
+      }
+
+      if (!this.form.phone) {
+        this.errors.phone = '電話番号を入力してください'
+        isValid = false
+      } else if (!/^\d{2,4}-\d{2,4}-\d{3,4}$/.test(this.form.phone)) {
+        this.errors.phone = '電話番号の形式が正しくありません（例：090-1234-5678）'
+        isValid = false
+      }
+
+      if (!this.form.email) {
+        this.errors.email = 'メールアドレスを入力してください'
+        isValid = false
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) {
+        this.errors.email = 'メールアドレスの形式が正しくありません'
+        isValid = false
+      }
+
+      return isValid
+    },
+    submitForm() {
+      if (!this.validate()) {
+        return
+      }
+
+      if (this.mode === 'add') {
+        this.$store.dispatch('addContact', { ...this.form })
+      } else {
+        this.$store.dispatch('updateContact', {
+          id: this.contact.id,
+          ...this.form
+        })
+      }
+
+      this.closeForm()
     }
   },
-  watch: {
-    contact: {
-      handler(newContact) {
-        this.formData = { ...newContact };
-      },
-      deep: true
+  created() {
+    if (this.mode === 'edit' && this.contact) {
+      this.form = { ...this.contact }
     }
   }
 }
 </script>
-
-<style scoped>
-.contact-form {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.btn-primary {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.btn-secondary {
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-</style> 

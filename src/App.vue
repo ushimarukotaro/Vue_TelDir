@@ -1,14 +1,13 @@
+<!-- src/App.vue -->
 <template>
-  <div id="app">
-    <router-view/>
-  </div>
-</template>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Vue.js 電話帳アプリ</a>
+    </div>
+  </nav>
 
-<script>
-export default {
-  name: 'App'
-}
-</script>
+  <router-view/>
+</template>
 
 <style>
 #app {
@@ -16,11 +15,5 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #f8f9fa;
 }
 </style>
