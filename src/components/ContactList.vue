@@ -40,7 +40,6 @@
               <th>電話番号</th>
               <th>メールアドレス</th>
               <th>グループ</th>
-              <th>グループ</th>
               <th>編集</th>
             </tr>
           </thead>
@@ -52,7 +51,6 @@
               <td>{{ contact.name }}</td>
               <td>{{ contact.phone }}</td>
               <td>{{ contact.email }}</td>
-              <td>{{ getGroupName(contact.groupId) }}</td>
               <td>{{ getGroupName(contact.groupId) }}</td>
               <td>
                 <button type="button" class="btn btn-secondary btn-sm" @click="editContact(contact)">編集</button>
