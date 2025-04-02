@@ -21,25 +21,25 @@
         </div>
         <button class="btn btn-primary mb-3" @click="showAddForm">新規作成</button>
 
-        <table class="table table-sm  table-hover" id="contact-table">
+        <table class="table table-sm table-hover" id="contact-table">
           <thead>
             <tr>
-              <th class="text-center">選択</th>
-              <th class="text-center">氏名</th>
-              <th class="text-center">電話番号</th>
-              <th class="text-center">メールアドレス</th>
-              <th class="text-center">編集</th>
+              <th>選択</th>
+              <th>氏名</th>
+              <th>電話番号</th>
+              <th>メールアドレス</th>
+              <th>編集</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="contact in contacts" :key="contact.id">
-              <td class="text-center">
+              <td>
                 <input type="checkbox" v-model="selectedContacts" :value="contact.id">
               </td>
               <td>{{ contact.name }}</td>
               <td>{{ contact.phone }}</td>
               <td>{{ contact.email }}</td>
-              <td class="text-center">
+              <td>
                 <button type="button" class="btn btn-secondary btn-sm" @click="editContact(contact)">編集</button>
               </td>
             </tr>

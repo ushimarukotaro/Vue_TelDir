@@ -2,11 +2,18 @@ import { createStore } from 'vuex'
 
 export default createStore({
   state: {
-    contacts: []
+    contacts: [],
+    groups: []
   },
   getters: {
     getAllContacts(state) {
       return state.contacts
+    },
+    getAllGroups(state) {
+      return state.groups
+    },
+    getContactsByGroup: (state) => (groupId) => {
+      return state.contacts.filter(contact => contact.groupId === groupId)
     }
   },
   mutations: {
@@ -24,6 +31,21 @@ export default createStore({
     },
     deleteContact(state, contactId) {
       state.contacts = state.contacts.filter(c => c.id !== contactId)
+    },
+    setGroups(state, groups) {
+      state.groups = groups
+    },
+    addGroup(state, group) {
+      state.groups.push(group)
+    },
+    updateGroup(state, updatedGroup) {
+      const index = state.groups.findIndex(g => g.id === updatedGroup.id)
+      if (index !== -1) {
+        state.groups.splice(index, 1, updatedGroup)
+      }
+    },
+    deleteGroup(state, groupId) {
+      state.groups = state.groups.filter(g => g.id !== groupId)
     }
   },
   actions: {
@@ -43,6 +65,7 @@ export default createStore({
       }
       commit('addContact', newContact)
       dispatch('saveContacts')
+      return newContact
     },
     updateContact({ commit, dispatch }, contact) {
       commit('updateContact', contact)
@@ -51,6 +74,38 @@ export default createStore({
     deleteContact({ commit, dispatch }, contactId) {
       commit('deleteContact', contactId)
       dispatch('saveContacts')
+    },
+    loadGroups({ commit }) {
+      const savedGroups = localStorage.getItem('groups')
+      if (savedGroups) {
+        commit('setGroups', JSON.parse(savedGroups))
+      }
+    },
+    saveGroups({ state }) {
+      localStorage.setItem('groups', JSON.stringify(state.groups))
+    },
+    addGroup({ commit, dispatch }, group) {
+      const newGroup = {
+        ...group,
+        id: Date.now()
+      }
+      commit('addGroup', newGroup)
+      dispatch('saveGroups')
+      return newGroup
+    },
+    updateGroup({ commit, dispatch }, group) {
+      commit('updateGroup', group)
+      dispatch('saveGroups')
+    },
+    deleteGroup({ commit, dispatch, state }, groupId) {
+      // グループ削除時に所属する連絡先も更新
+      const contactsToUpdate = state.contacts.filter(c => c.groupId === groupId)
+      contactsToUpdate.forEach(contact => {
+        dispatch('updateContact', { ...contact, groupId: null })
+      })
+
+      commit('deleteGroup', groupId)
+      dispatch('saveGroups')
     }
   }
 })
