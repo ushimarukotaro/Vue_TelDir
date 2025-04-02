@@ -49,7 +49,7 @@
               v-model="form.groupId"
               class="form-select"
             >
-              <option :value="null">グループなし</option>
+              <option :value="null">選択なし</option>
               <option v-for="group in groups" :key="group.id" :value="group.id">
                 {{ group.name }}
               </option>
