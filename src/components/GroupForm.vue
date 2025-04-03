@@ -1,32 +1,40 @@
 <template>
-  <div class="card mt-4">
-    <div class="card-header">
-      <h3>{{ formTitle }}</h3>
-    </div>
-    <div class="card-body">
-      <form @submit.prevent="submitForm">
-        <div class="mb-3">
-          <label for="groupName" class="form-label">グループ名</label>
-          <input
-            id="groupName"
-            v-model="form.name"
-            type="text"
-            class="form-control"
-            required
-          >
-          <div v-if="error" class="text-danger">{{ error }}</div>
-        </div>
+  <div class="container mt-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="card">
+          <div class="card-header">
+            <h3>{{ formTitle }}</h3>
+          </div>
+          <div class="card-body">
+            <form @submit.prevent="submitForm">
+              <div class="mb-3">
+                <label for="groupName" class="form-label">グループ名</label>
+                <input
+                  id="groupName"
+                  v-model="form.name"
+                  type="text"
+                  class="form-control"
+                >
+                <div v-if="error" class="text-danger">{{ error }}</div>
+              </div>
 
-        <div class="d-flex justify-content-between">
-          <button type="button" class="btn btn-secondary" @click="closeForm">キャンセル</button>
-          <button type="submit" class="btn btn-primary">保存</button>
+              <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" @click="closeForm">キャンセル</button>
+                <button type="submit" class="btn btn-primary">保存</button>
+              </div>
+            </form>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+import { useToast } from '../composables/useToast'
+
 export default {
   name: 'GroupForm',
   props: {
@@ -35,8 +43,8 @@ export default {
       default: 'add',
       validator: value => ['add', 'edit'].includes(value)
     },
-    group: {
-      type: Object,
+    groupId: {
+      type: String,
       default: null
     }
   },
@@ -49,13 +57,20 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({
+      getGroupById: 'getGroupById'
+    }),
     formTitle() {
       return this.mode === 'add' ? 'グループ作成' : 'グループ編集'
     }
   },
+  setup() {
+    const { showToast } = useToast()
+    return { showToast }
+  },
   methods: {
     closeForm() {
-      this.$emit('form-closed')
+      this.$router.push('/')
     },
     validate() {
       this.error = ''
@@ -74,19 +89,32 @@ export default {
 
       if (this.mode === 'add') {
         this.$store.dispatch('addGroup', { ...this.form })
+        this.showToast('グループを追加しました')
       } else {
         this.$store.dispatch('updateGroup', {
-          id: this.group.id,
+          id: Number(this.groupId),
           ...this.form
         })
+        this.showToast('グループを更新しました')
       }
 
       this.closeForm()
     }
   },
   created() {
-    if (this.mode === 'edit' && this.group) {
-      this.form = { ...this.group }
+    if (this.mode === 'edit' && this.groupId) {
+      const numericId = Number(this.groupId)
+      const group = this.getGroupById(numericId)
+      if (group) {
+        this.form = { ...group }
+      } else {
+        this.$store.dispatch('loadGroups').then(() => {
+          const group = this.getGroupById(numericId)
+          if (group) {
+            this.form = { ...group }
+          }
+        })
+      }
     }
   }
 }

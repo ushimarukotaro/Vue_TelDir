@@ -14,6 +14,12 @@ export default createStore({
     },
     getContactsByGroup: (state) => (groupId) => {
       return state.contacts.filter(contact => contact.groupId === groupId)
+    },
+    getContactById: state => id => {
+      return state.contacts.find(contact => contact.id === id)
+    },
+    getGroupById: state => id => {
+      return state.groups.find(group => group.id === id)
     }
   },
   mutations: {
@@ -50,10 +56,13 @@ export default createStore({
   },
   actions: {
     loadContacts({ commit }) {
-      const savedContacts = localStorage.getItem('contacts')
-      if (savedContacts) {
-        commit('setContacts', JSON.parse(savedContacts))
-      }
+      return new Promise((resolve) => {
+        const savedContacts = localStorage.getItem('contacts')
+        if (savedContacts) {
+          commit('setContacts', JSON.parse(savedContacts))
+        }
+        resolve()
+      })
     },
     saveContacts({ state }) {
       localStorage.setItem('contacts', JSON.stringify(state.contacts))
@@ -76,10 +85,13 @@ export default createStore({
       dispatch('saveContacts')
     },
     loadGroups({ commit }) {
-      const savedGroups = localStorage.getItem('groups')
-      if (savedGroups) {
-        commit('setGroups', JSON.parse(savedGroups))
-      }
+      return new Promise((resolve) => {
+        const savedGroups = localStorage.getItem('groups')
+        if (savedGroups) {
+          commit('setGroups', JSON.parse(savedGroups))
+        }
+        resolve()
+      })
     },
     saveGroups({ state }) {
       localStorage.setItem('groups', JSON.stringify(state.groups))
@@ -106,6 +118,25 @@ export default createStore({
 
       commit('deleteGroup', groupId)
       dispatch('saveGroups')
+    },
+    getContactById({ getters, state, dispatch }, id) {
+      let contact = getters.getContactById(id)
+      if (!contact && state.contacts.length === 0) {
+        // まだ連絡先がロードされていない場合
+        return dispatch('loadContacts').then(() => {
+          return getters.getContactById(id) || null
+        })
+      }
+      return contact || null
+    },
+    getGroupById({ getters, state, dispatch }, id) {
+      let group = getters.getGroupById(id)
+      if (!group && state.groups.length === 0) {
+        return dispatch('loadGroups').then(() => {
+          return getters.getGroupById(id) || null
+        })
+      }
+      return group || null
     }
   }
 })
