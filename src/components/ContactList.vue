@@ -18,6 +18,17 @@
               <button class="btn btn-outline-secondary" type="button" @click="clearSearch">クリア</button>
             </div>
           </div>
+          <div class="col-md-6">
+            <div class="input-group">
+              <label class="input-group-text">グループで絞り込み</label>
+              <select class="form-select" v-model="selectedGroupId">
+                <option :value="null">全て表示</option>
+                <option v-for="group in groups" :key="group.id" :value="group.id">
+                  {{ group.name }}
+                </option>
+              </select>
+            </div>
+          </div>
         </div>
         <button class="btn btn-primary mb-3" @click="showAddForm">新規作成</button>
 
@@ -71,16 +82,31 @@ export default {
     return {
       selectedContacts: [],
       searchQuery: '',
-      filteredContacts: []
+      filteredContacts: [],
+      selectedGroupId: null
     }
   },
   computed: {
     ...mapGetters({
       allContacts: 'getAllContacts',
-      groups: 'getAllGroups'
+      groups: 'getAllGroups',
+      getContactsByGroup: 'getContactsByGroup'
     }),
     contacts() {
-      return this.filteredContacts.length > 0 ? this.filteredContacts : this.allContacts
+      let result = this.allContacts
+
+      // グループでフィルタリング
+      if (this.selectedGroupId !== null) {
+        result = this.getContactsByGroup(this.selectedGroupId)
+      }
+
+      // 検索でフィルタリング
+      if (this.filteredContacts.length > 0) {
+        const filteredIds = this.filteredContacts.map(c => c.id)
+        result = result.filter(contact => filteredIds.includes(contact.id))
+      }
+
+      return result
     }
   },
   methods: {
@@ -127,6 +153,13 @@ export default {
       if (!groupId) return ''
       const group = this.groups.find(g => g.id === groupId)
       return group ? group.name : ''
+    }
+  },
+  watch: {
+    selectedGroupId() {
+      // グループ選択が変わったら検索をリセット
+      this.filteredContacts = []
+      this.searchQuery = ''
     }
   },
   created() {
