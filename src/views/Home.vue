@@ -1,8 +1,10 @@
 <template>
   <div class="container mt-4">
-    <div v-if="!showContactForm && !showGroupForm">
-      <ContactList @show-form="handleShowContactForm" />
-      <GroupList @show-group-form="handleShowGroupForm" />
+    <div class="row justify-content-center">
+      <div class="col-lg-12">
+        <ContactList />
+        <GroupList />
+      </div>
     </div>
 
     <ContactForm
@@ -61,3 +63,9 @@ export default {
   }
 }
 </script>
+
+<style>
+.container {
+  max-width: 1200px;
+}
+</style>
