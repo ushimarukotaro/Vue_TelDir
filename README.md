@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Vue_TelDir
 Vue.jsで電話帳アプリを作ろう
 =======
@@ -24,6 +23,3 @@ npm run build
 npm run lint
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
->>>>>>> 課題6：検索機能の実装
